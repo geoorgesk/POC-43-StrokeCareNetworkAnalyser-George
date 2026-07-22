@@ -177,17 +177,9 @@ export default function StrokeUnitMapInner() {
         .leaflet-container a.leaflet-popup-close-button:hover {
           color: #38bdf8;
         }
-        /* Fix missing tile background issue and tint the map to match Obsidian/Navy theme */
+        /* Fix missing tile background issue */
         .leaflet-container {
-          background: #030712 !important;
-        }
-        /* Tint the map tiles to a deep navy/cyan to perfectly match the dashboard */
-        .leaflet-tile-pane {
-          filter: sepia(100%) hue-rotate(185deg) saturate(300%) brightness(0.6) contrast(1.1) opacity(0.7);
-        }
-        /* Keep markers bright by ensuring they don't inherit the tile pane filter */
-        .leaflet-marker-pane, .leaflet-overlay-pane {
-          filter: none;
+          background: transparent !important;
         }
       `}} />
     </>
