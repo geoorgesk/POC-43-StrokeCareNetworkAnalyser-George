@@ -56,7 +56,7 @@ export default function StrokeUnitMapInner() {
       <MapContainer 
         center={[51.48, -0.12]} 
         zoom={11} 
-        style={{ height: '100%', width: '100%', background: '#030712' }}
+        style={{ height: '100%', minHeight: '500px', width: '100%', background: '#030712' }}
         zoomControl={false}
       >
         <MapResizer />
@@ -177,9 +177,17 @@ export default function StrokeUnitMapInner() {
         .leaflet-container a.leaflet-popup-close-button:hover {
           color: #38bdf8;
         }
-        /* Fix missing tile background issue */
+        /* Fix missing tile background issue and tint the map to match Obsidian/Navy theme */
         .leaflet-container {
-          background: transparent !important;
+          background: #030712 !important;
+        }
+        /* Tint the map tiles to a deep navy/cyan to perfectly match the dashboard */
+        .leaflet-tile-pane {
+          filter: sepia(100%) hue-rotate(185deg) saturate(300%) brightness(0.6) contrast(1.1) opacity(0.7);
+        }
+        /* Keep markers bright by ensuring they don't inherit the tile pane filter */
+        .leaflet-marker-pane, .leaflet-overlay-pane {
+          filter: none;
         }
       `}} />
     </>
