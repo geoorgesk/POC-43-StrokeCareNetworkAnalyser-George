@@ -41,7 +41,7 @@ export default function StrokeCascade({ data }: StrokeCascadeProps) {
   ];
 
   const getStatusColor = (status: string, index: number, isActive: boolean) => {
-    if (isActive) return "text-white bg-cyan border-cyan shadow-[0_0_15px_rgba(56,189,248,0.5)] ripple-ring";
+    if (isActive) return "text-white bg-cyan border-cyan shadow-[0_0_15px_rgba(56,189,248,0.5)]";
     
     switch (status) {
       case "active": return "text-cyan bg-cyan/10 border-cyan/30";
@@ -93,13 +93,14 @@ export default function StrokeCascade({ data }: StrokeCascadeProps) {
                 )}
 
                 <div className={`
-                  w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10
+                  w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10 relative
                   ${getStatusColor(step.status, i, isActive)}
                 `}>
-                  <Icon size={16} />
+                  {isActive && <div className="ripple-ring text-cyan"></div>}
+                  <Icon size={16} className="relative z-10" />
                 </div>
                 
-                <div className="text-[10px] font-medium text-gray-300 mt-2 text-center leading-tight group-hover:text-cyan transition-colors">
+                <div className={`text-[10px] mt-2 text-center leading-tight transition-colors ${isActive ? 'text-cyan font-bold shadow-cyan' : 'font-medium text-gray-300 group-hover:text-cyan'}`}>
                   {step.name}
                 </div>
                 
