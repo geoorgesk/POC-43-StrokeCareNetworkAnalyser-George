@@ -8,7 +8,6 @@ interface HospitalBenchmarkTableProps {
 export default function HospitalBenchmarkTable({ data }: HospitalBenchmarkTableProps) {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
-  // Generate dummy data based on metrics
   const avg = data?.metrics?.avgDTN || 60;
   
   const hospitals = [
@@ -20,9 +19,9 @@ export default function HospitalBenchmarkTable({ data }: HospitalBenchmarkTableP
   ].sort((a, b) => a.dtn - b.dtn);
 
   const getStatus = (dtn: number) => {
-    if (dtn <= 60) return { label: "ON TARGET", color: "bg-success/20 text-success border-success/30" };
-    if (dtn <= 80) return { label: "AT RISK", color: "bg-warning/20 text-warning border-warning/30" };
-    return { label: "CRITICAL", color: "bg-critical/20 text-critical border-critical/30" };
+    if (dtn <= 60) return { label: "ON TARGET", color: "text-success border-success/30 glow-success" };
+    if (dtn <= 80) return { label: "AT RISK", color: "text-warning border-warning/30 glow-warning" };
+    return { label: "CRITICAL", color: "text-critical border-critical/30 glow-critical" };
   };
 
   const getAngelsColor = (status: string) => {
@@ -39,12 +38,12 @@ export default function HospitalBenchmarkTable({ data }: HospitalBenchmarkTableP
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="border-b border-slate-800 text-xs text-gray-400">
-            <th className="p-3 font-medium">HOSPITAL</th>
-            <th className="p-3 font-medium">LOCATION</th>
-            <th className="p-3 font-medium text-right">DTN (MIN)</th>
-            <th className="p-3 font-medium text-right">T-RATE</th>
-            <th className="p-3 font-medium text-center">ANGELS STATUS</th>
-            <th className="p-3 font-medium text-center">STATUS</th>
+            <th className="p-3 font-medium font-mono">HOSPITAL</th>
+            <th className="p-3 font-medium font-mono">LOCATION</th>
+            <th className="p-3 font-medium text-right font-mono">DTN (MIN)</th>
+            <th className="p-3 font-medium text-right font-mono">T-RATE</th>
+            <th className="p-3 font-medium text-center font-mono">ANGELS STATUS</th>
+            <th className="p-3 font-medium text-center font-mono">STATUS</th>
             <th className="p-3 font-medium"></th>
           </tr>
         </thead>
@@ -52,29 +51,37 @@ export default function HospitalBenchmarkTable({ data }: HospitalBenchmarkTableP
           {hospitals.map((h, i) => {
             const status = getStatus(h.dtn);
             const isExpanded = expandedRow === h.id;
+            const dtnRatio = Math.min(h.dtn / 120, 1) * 100;
+            const dtnColor = h.dtn <= 60 ? 'bg-success' : h.dtn <= 80 ? 'bg-warning' : 'bg-critical';
             
             return (
               <Fragment key={h.id}>
                 <tr 
                   className={`
-                    border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors cursor-pointer
+                    border-b border-slate-800/50 cursor-pointer table-row-hover transition-colors
                     ${isExpanded ? 'bg-slate-800/30' : ''}
                   `}
                   onClick={() => setExpandedRow(isExpanded ? null : h.id)}
                 >
                   <td className="p-3 font-medium text-white text-sm">{h.name}</td>
                   <td className="p-3 text-sm text-gray-400">{h.city}, {h.country}</td>
-                  <td className={`p-3 text-right font-mono font-bold ${h.dtn > 60 ? 'text-warning' : (h.dtn > 80 ? 'text-critical' : 'text-success')}`}>
-                    {h.dtn}
+                  <td className={`p-3 text-right font-mono font-bold ${h.dtn > 60 ? (h.dtn > 80 ? 'text-critical' : 'text-warning') : 'text-success'}`}>
+                    <div className="flex flex-col items-end gap-1">
+                      <span>{h.dtn}</span>
+                      <div className="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div className={`h-full ${dtnColor}`} style={{ width: `${dtnRatio}%` }} />
+                      </div>
+                    </div>
                   </td>
                   <td className="p-3 text-right font-mono text-gray-300">{h.rate}%</td>
                   <td className="p-3 text-center">
-                    <span className={`px-2 py-1 rounded text-xs border ${getAngelsColor(h.angels)}`}>
-                      {h.angels}
+                    <span className={`px-2 py-1 rounded text-xs border relative overflow-hidden group inline-block ${getAngelsColor(h.angels)}`}>
+                      <span className="relative z-10">{h.angels}</span>
+                      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-shimmer" />
                     </span>
                   </td>
                   <td className="p-3 text-center">
-                    <span className={`px-2 py-1 rounded text-[10px] font-bold border tracking-wider ${status.color}`}>
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold border tracking-wider bg-black/40 ${status.color}`}>
                       {status.label}
                     </span>
                   </td>
@@ -83,7 +90,7 @@ export default function HospitalBenchmarkTable({ data }: HospitalBenchmarkTableP
                   </td>
                 </tr>
                 {isExpanded && (
-                  <tr className="bg-black/20 border-b border-slate-800">
+                  <tr className="bg-black/20 border-b border-slate-800 animate-accordion-open">
                     <td colSpan={7} className="p-4">
                       <div className="grid grid-cols-4 gap-4 text-sm">
                         <div className="glassmorphism p-3 rounded">

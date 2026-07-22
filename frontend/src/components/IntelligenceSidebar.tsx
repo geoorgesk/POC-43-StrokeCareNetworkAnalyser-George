@@ -21,20 +21,20 @@ const CollapsiblePanel = ({ title, icon: Icon, children, defaultOpen = false }: 
     <div className="border-b border-slate-800">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 hover:bg-slate-800/30 transition-colors"
+        className="w-full flex items-center justify-between p-4 hover:bg-slate-800/50 transition-colors duration-300"
       >
         <div className="flex items-center gap-3">
           <Icon size={16} className="text-indigo" />
           <span className="text-sm font-semibold tracking-wide text-gray-300">{title}</span>
         </div>
-        {isOpen ? <ChevronUp size={16} className="text-gray-500" /> : <ChevronDown size={16} className="text-gray-500" />}
+        {isOpen ? <ChevronUp size={16} className="text-gray-500 transition-transform" /> : <ChevronDown size={16} className="text-gray-500 transition-transform" />}
       </button>
       
-      {isOpen && (
-        <div className="px-4 pb-4 pt-1 animate-in slide-in-from-top-2 opacity-100">
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100 animate-accordion-open' : 'max-h-0 opacity-0'}`}>
+        <div className="px-4 pb-4 pt-1">
           {children}
         </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -84,7 +84,7 @@ export default function IntelligenceSidebar({ scenarioId, setScenarioId, data, l
       {/* 5. Why This Matters */}
       <CollapsiblePanel title="WHY THIS MATTERS" icon={AlertTriangle} defaultOpen={true}>
         <p className="text-sm text-gray-400 leading-relaxed">
-          Time is brain. For every minute delay in restoring blood flow, <span className="text-white font-medium">1.9 million neurons are lost</span>. A 15-minute reduction in door-to-needle time is associated with a 5% lower mortality odds and 4% lower odds of being discharged to a nursing home.
+          Time is brain. For every minute delay in restoring blood flow, <span className="text-white font-medium text-glow-cyan">1.9 million neurons are lost</span>. A 15-minute reduction in door-to-needle time is associated with a <span className="text-white font-medium text-glow-cyan">5% lower mortality odds</span> and <span className="text-white font-medium text-glow-cyan">4% lower odds</span> of being discharged to a nursing home.
         </p>
       </CollapsiblePanel>
 
@@ -109,9 +109,9 @@ export default function IntelligenceSidebar({ scenarioId, setScenarioId, data, l
       {/* 7. Decisions */}
       <CollapsiblePanel title="DECISIONS TO MAKE" icon={Zap} defaultOpen={true}>
         <ul className="list-disc pl-4 text-sm text-gray-400 space-y-2 marker:text-cyan">
-          <li>Should EMS bypass North Hospital during peak hours due to consistent 90m+ DTN times?</li>
-          <li>Does South Clinic require immediate Angels Initiative retraining?</li>
-          <li>Should we allocate emergency funding for a dedicated stroke CT scanner at East General?</li>
+          <li className="hover:translate-x-1 hover:text-cyan transition-transform cursor-default">Should EMS bypass North Hospital during peak hours due to consistent 90m+ DTN times?</li>
+          <li className="hover:translate-x-1 hover:text-cyan transition-transform cursor-default">Does South Clinic require immediate Angels Initiative retraining?</li>
+          <li className="hover:translate-x-1 hover:text-cyan transition-transform cursor-default">Should we allocate emergency funding for a dedicated stroke CT scanner at East General?</li>
         </ul>
       </CollapsiblePanel>
 
@@ -123,7 +123,7 @@ export default function IntelligenceSidebar({ scenarioId, setScenarioId, data, l
 
       {/* 10. Download */}
       <div className="p-4 mt-auto">
-        <button className="w-full glassmorphism hover:bg-slate-800 text-cyan py-3 rounded-lg flex items-center justify-center gap-2 transition-all hover:shadow-[0_0_15px_rgba(56,189,248,0.2)]">
+        <button className="w-full btn-premium hover:gradient-border text-cyan py-3 rounded-lg flex items-center justify-center gap-2 transition-all hover:shadow-[0_0_15px_rgba(56,189,248,0.2)]">
           <Download size={16} />
           <span className="font-semibold text-sm tracking-wide">EXPORT SCENARIO REPORT</span>
         </button>

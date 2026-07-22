@@ -1,125 +1,215 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { Shield, Clock, Activity, Bed, Zap } from 'lucide-react';
 
-// Dynamically import map components to avoid SSR issues with Leaflet
-const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const CircleMarker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.CircleMarker),
-  { ssr: false }
-);
-const Popup = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Popup),
-  { ssr: false }
-);
+const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
+const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
+const CircleMarker = dynamic(() => import('react-leaflet').then(mod => mod.CircleMarker), { ssr: false });
+const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), { ssr: false });
+const Polyline = dynamic(() => import('react-leaflet').then(mod => mod.Polyline), { ssr: false });
 
-interface StrokeUnitMapProps {
-  data: any;
-}
+import 'leaflet/dist/leaflet.css';
 
-export default function StrokeUnitMap({ data }: StrokeUnitMapProps) {
+const HOSPITALS = [
+  { id: 1, name: 'Central Stroke Center', lat: 51.501, lng: -0.119, dtn: 35, rate: 24, size: 8, beds: 120, angels: 'Diamond' },
+  { id: 2, name: 'East General Hospital', lat: 51.518, lng: -0.059, dtn: 42, rate: 18, size: 6, beds: 95, angels: 'Platinum' },
+  { id: 3, name: 'South Regional Hospital', lat: 51.466, lng: -0.093, dtn: 28, rate: 29, size: 9, beds: 150, angels: 'Diamond' },
+  { id: 4, name: 'West Community Clinic', lat: 51.426, lng: -0.176, dtn: 55, rate: 14, size: 7, beds: 110, angels: 'Gold' },
+  { id: 5, name: 'North University Medical', lat: 51.524, lng: -0.134, dtn: 40, rate: 21, size: 8, beds: 130, angels: 'Platinum' },
+];
+
+const CONNECTIONS = [
+  [HOSPITALS[0], HOSPITALS[1]],
+  [HOSPITALS[0], HOSPITALS[2]],
+  [HOSPITALS[2], HOSPITALS[3]],
+  [HOSPITALS[0], HOSPITALS[4]],
+];
+
+const getDtnColor = (dtn: number) => {
+  if (dtn <= 30) return '#4ade80'; // success
+  if (dtn <= 45) return '#fbbf24'; // warning
+  return '#f87171'; // critical
+};
+
+const getBadgeClass = (dtn: number) => {
+  if (dtn <= 30) return 'bg-success/20 text-success border border-success/30';
+  if (dtn <= 45) return 'bg-warning/20 text-warning border border-warning/30';
+  return 'bg-critical/20 text-critical border border-critical/30';
+};
+
+const getAngelsColor = (status: string) => {
+  switch (status) {
+    case 'Diamond': return 'text-cyan glow-cyan';
+    case 'Platinum': return 'text-slate-300';
+    case 'Gold': return 'text-yellow-400';
+    default: return 'text-slate-500';
+  }
+};
+
+export default function StrokeUnitMap() {
   const [mounted, setMounted] = useState(false);
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) {
-    return <div className="h-[400px] w-full bg-slate-900/50 rounded-lg animate-pulse"></div>;
+    return <div className="h-full w-full min-h-[500px] bg-obsidian rounded-xl border border-slate-800 animate-pulse-slow"></div>;
   }
 
-  // Generate some dummy hospitals in the Gulf region
-  const hospitals = [
-    { name: "Dubai General", lat: 25.2048, lng: 55.2708, dtn: data?.metrics?.avgDTN - 5 || 55, rate: 18, size: 20 },
-    { name: "Abu Dhabi Central", lat: 24.4539, lng: 54.3773, dtn: data?.metrics?.avgDTN + 10 || 70, rate: 15, size: 25 },
-    { name: "Riyadh Stroke Center", lat: 24.7136, lng: 46.6753, dtn: data?.metrics?.avgDTN - 10 || 50, rate: 22, size: 30 },
-    { name: "Doha Medical", lat: 25.2854, lng: 51.5310, dtn: data?.metrics?.avgDTN + 25 || 85, rate: 12, size: 15 },
-    { name: "Kuwait Hospital", lat: 29.3759, lng: 47.9774, dtn: data?.metrics?.avgDTN || 60, rate: 16, size: 18 },
-  ];
-
-  const getColor = (dtn: number) => {
-    if (dtn <= 60) return "#22C55E";
-    if (dtn <= 80) return "#F59E0B";
-    return "#EF4444";
-  };
-
   return (
-    <div className="w-full h-[400px] rounded-lg overflow-hidden border border-slate-800 relative z-0">
+    <div className="relative h-full w-full min-h-[500px] rounded-xl overflow-hidden border border-slate-800 bg-obsidian">
+      {/* Map Container Inner Shadow/Vignette Effect */}
+      <div className="absolute inset-0 z-[400] pointer-events-none shadow-[inset_0_0_80px_rgba(3,7,18,0.9)]" />
+      
       <MapContainer 
-        center={[25.0, 50.0]} 
-        zoom={5} 
-        style={{ height: '100%', width: '100%', backgroundColor: '#030712' }}
+        center={[51.48, -0.12]} 
+        zoom={11} 
+        style={{ height: '100%', width: '100%', background: '#030712' }}
         zoomControl={false}
       >
         <TileLayer
-          url="https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
-        
-        {hospitals.map((h, i) => (
-          <CircleMarker
-            key={i}
-            center={[h.lat, h.lng]}
-            radius={h.size / 2}
-            pathOptions={{ 
-              fillColor: getColor(h.dtn), 
-              fillOpacity: 0.7, 
-              color: getColor(h.dtn), 
-              weight: 2 
-            }}
-          >
-            <Popup className="real-rails-popup">
-              <div className="bg-navy p-3 rounded-lg border border-slate-700 min-w-[200px]">
-                <h3 className="font-bold text-white mb-2">{h.name}</h3>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="text-gray-400">DTN Time:</div>
-                  <div className="font-mono font-bold" style={{ color: getColor(h.dtn) }}>{h.dtn} min</div>
-                  
-                  <div className="text-gray-400">Thrombolysis:</div>
-                  <div className="text-white font-mono">{h.rate}%</div>
-                </div>
-              </div>
-            </Popup>
-          </CircleMarker>
+
+        {/* Connection Lines */}
+        {CONNECTIONS.map((conn, idx) => (
+          <Polyline 
+            key={`conn-${idx}`}
+            positions={[[conn[0].lat, conn[0].lng], [conn[1].lat, conn[1].lng]]}
+            pathOptions={{ color: '#38BDF8', weight: 1.5, dashArray: '5, 8', opacity: 0.4 }}
+          />
         ))}
+
+        {HOSPITALS.map((hospital) => {
+          const color = getDtnColor(hospital.dtn);
+          
+          return (
+            <React.Fragment key={hospital.id}>
+              {/* Outer Glow Halo */}
+              <CircleMarker
+                center={[hospital.lat, hospital.lng]}
+                radius={hospital.size * 2.5}
+                pathOptions={{
+                  fillColor: color,
+                  fillOpacity: 0.15,
+                  color: 'transparent',
+                  weight: 0
+                }}
+              />
+              
+              {/* Inner Core Marker */}
+              <CircleMarker
+                center={[hospital.lat, hospital.lng]}
+                radius={hospital.size}
+                pathOptions={{
+                  fillColor: color,
+                  fillOpacity: 0.9,
+                  color: '#030712',
+                  weight: 2
+                }}
+              >
+                <Popup className="premium-map-popup">
+                  <div className="p-1 min-w-[220px] font-sans">
+                    <h3 className="text-white font-bold text-lg mb-3 flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-cyan" />
+                      {hospital.name}
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      {/* DTN Metric */}
+                      <div className="flex justify-between items-center bg-slate-800/40 p-2 rounded-lg border border-slate-700/50">
+                        <span className="text-slate-400 text-sm flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> DTN Time
+                        </span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-bold font-mono ${getBadgeClass(hospital.dtn)}`}>
+                          {hospital.dtn}m
+                        </span>
+                      </div>
+
+                      {/* Thrombolysis Rate */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-400 flex items-center gap-1"><Activity className="w-3 h-3" /> Rate</span>
+                          <span className="text-white font-mono">{hospital.rate}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-cyan rounded-full shadow-[0_0_8px_#38BDF8]" 
+                            style={{ width: `${hospital.rate}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Footer Metrics */}
+                      <div className="flex justify-between items-center pt-2 border-t border-slate-700/50 text-sm">
+                        <div className="flex items-center gap-1 text-slate-300">
+                          <Bed className="w-3.5 h-3.5 text-indigo-400" />
+                          <span className="font-mono">{hospital.beds}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Zap className={`w-3.5 h-3.5 ${getAngelsColor(hospital.angels)}`} />
+                          <span className={`font-semibold ${getAngelsColor(hospital.angels)}`}>{hospital.angels}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            </React.Fragment>
+          );
+        })}
       </MapContainer>
-      
-      {/* Legend overlay */}
-      <div className="absolute bottom-4 left-4 bg-navy/90 backdrop-blur border border-slate-700 p-3 rounded-lg z-[1000] text-xs">
-        <h4 className="text-gray-300 font-semibold mb-2">DTN Status</h4>
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-3 h-3 rounded-full bg-success"></div>
-          <span className="text-gray-400">&le; 60m (On Target)</span>
-        </div>
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-3 h-3 rounded-full bg-warning"></div>
-          <span className="text-gray-400">61-80m (At Risk)</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-critical"></div>
-          <span className="text-gray-400">&gt; 80m (Critical)</span>
+
+      {/* Glassmorphism Legend */}
+      <div className="absolute bottom-6 right-6 z-[400] glassmorphism p-4 rounded-xl border border-slate-700/50 backdrop-blur-md shadow-2xl">
+        <h4 className="text-xs font-bold text-slate-400 mb-3 tracking-widest font-mono">NETWORK STATUS</h4>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded-full bg-success shadow-[0_0_8px_#4ade80]"></div>
+            <span className="text-sm text-slate-200">Optimal (&lt;30m)</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded-full bg-warning shadow-[0_0_8px_#fbbf24]"></div>
+            <span className="text-sm text-slate-200">Average (30-45m)</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded-full bg-critical shadow-[0_0_8px_#f87171]"></div>
+            <span className="text-sm text-slate-200">Delayed (&gt;45m)</span>
+          </div>
+          <div className="w-full h-px bg-slate-700/50 my-2"></div>
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-px bg-cyan opacity-50 border-t border-dashed border-cyan"></div>
+            <span className="text-sm text-slate-200">Transfer Route</span>
+          </div>
         </div>
       </div>
       
-      {/* Fix popup styling globally since we can't easily scope it inside the Popup component */}
+      {/* Required Leaflet Popup CSS overrides to make them look good with dark mode */}
       <style dangerouslySetInnerHTML={{__html: `
-        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-          background: #0B1117;
-          border: 1px solid #1F2937;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        .leaflet-popup-content-wrapper {
+          background: rgba(15, 23, 42, 0.85);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(56, 189, 248, 0.2);
+          box-shadow: 0 10px 40px -10px rgba(0,0,0,0.8), 0 0 20px rgba(56, 189, 248, 0.1);
+          border-radius: 12px;
+          color: white;
         }
-        .leaflet-popup-content {
-          margin: 0;
+        .leaflet-popup-tip {
+          background: rgba(15, 23, 42, 0.85);
+          border-right: 1px solid rgba(56, 189, 248, 0.2);
+          border-bottom: 1px solid rgba(56, 189, 248, 0.2);
         }
         .leaflet-container a.leaflet-popup-close-button {
-          color: #9CA3AF;
-          padding: 8px 8px 0 0;
+          color: #94a3b8;
+          padding: 8px;
+        }
+        .leaflet-container a.leaflet-popup-close-button:hover {
+          color: #38bdf8;
         }
       `}} />
     </div>

@@ -21,10 +21,16 @@ export default function SourceConfidencePanel({ loading }: SourceConfidencePanel
     { name: "Real-time HL7 Feed", type: "Live", conf: 76, icon: Server },
   ];
 
-  const getColor = (conf: number) => {
+  const getColorClass = (conf: number) => {
     if (conf > 90) return "bg-success";
     if (conf > 70) return "bg-warning";
     return "bg-critical";
+  };
+  
+  const getTextColorClass = (conf: number) => {
+    if (conf > 90) return "text-success";
+    if (conf > 70) return "text-warning";
+    return "text-critical";
   };
 
   return (
@@ -32,11 +38,16 @@ export default function SourceConfidencePanel({ loading }: SourceConfidencePanel
       {sources.map((s, i) => {
         const Icon = s.icon;
         return (
-          <div key={i} className="bg-black/20 p-3 rounded border border-slate-800/50">
+          <div key={i} className="bg-black/20 p-3 rounded border border-slate-800/50 hover:-translate-y-0.5 hover:shadow-lg transition-transform duration-200">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center gap-2">
                 <Icon size={12} className="text-gray-400" />
-                <span className="text-xs font-medium text-gray-300">{s.name}</span>
+                <span className="text-xs font-medium text-gray-300 flex items-center gap-2">
+                  {s.name}
+                  {s.conf > 90 && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse-glow" />
+                  )}
+                </span>
               </div>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-gray-400">
                 {s.type}
@@ -46,11 +57,11 @@ export default function SourceConfidencePanel({ loading }: SourceConfidencePanel
             <div className="flex items-center gap-3">
               <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                 <div 
-                  className={`h-full ${getColor(s.conf)} transition-all duration-1000`}
-                  style={{ width: `${s.conf}%` }}
+                  className={`h-full ${getColorClass(s.conf)} animate-progress-fill`}
+                  style={{ width: `${s.conf}%`, animationDuration: `${1 + i * 0.2}s` }}
                 ></div>
               </div>
-              <span className="text-xs font-mono font-bold" style={{ color: getColor(s.conf).replace('bg-', 'var(--color-') + ')' }}>
+              <span className={`text-xs font-mono font-bold ${getTextColorClass(s.conf)}`}>
                 {s.conf}%
               </span>
             </div>
@@ -58,8 +69,10 @@ export default function SourceConfidencePanel({ loading }: SourceConfidencePanel
         );
       })}
       
-      <div className="mt-4 text-[10px] text-gray-500 text-center italic">
-        Data fusion powered by Real Rails Intelligence Engine v2.4
+      <div className="mt-4 text-[10px] text-gray-500 text-center font-mono group cursor-default">
+        <span className="inline-block border-r-2 border-cyan pr-1 animate-pulse-slow">
+          Data fusion powered by Real Rails Intelligence Engine v2.4
+        </span>
       </div>
     </div>
   );
