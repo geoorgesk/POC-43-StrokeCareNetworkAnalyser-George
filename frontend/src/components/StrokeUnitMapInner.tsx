@@ -1,7 +1,18 @@
-import React from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, Polyline } from 'react-leaflet';
+import React, { useEffect } from 'react';
+import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, useMap } from 'react-leaflet';
 import { Shield, Clock, Activity, Bed, Zap } from 'lucide-react';
-import 'leaflet/dist/leaflet.css';
+
+function MapResizer() {
+  const map = useMap();
+  useEffect(() => {
+    // Force Leaflet to recalculate size after mount and after a slight delay
+    // to ensure CSS layouts have finished settling
+    map.invalidateSize();
+    const timeout = setTimeout(() => map.invalidateSize(), 250);
+    return () => clearTimeout(timeout);
+  }, [map]);
+  return null;
+}
 
 const HOSPITALS = [
   { id: 1, name: 'Central Stroke Center', lat: 51.501, lng: -0.119, dtn: 35, rate: 24, size: 8, beds: 120, angels: 'Diamond' },
@@ -48,6 +59,7 @@ export default function StrokeUnitMapInner() {
         style={{ height: '100%', width: '100%', background: '#030712' }}
         zoomControl={false}
       >
+        <MapResizer />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
