@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface HospitalBenchmarkTableProps {
@@ -54,7 +54,7 @@ export default function HospitalBenchmarkTable({ data }: HospitalBenchmarkTableP
             const isExpanded = expandedRow === h.id;
             
             return (
-              <React.Fragment key={h.id}>
+              <Fragment key={h.id}>
                 <tr 
                   className={`
                     border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors cursor-pointer
@@ -109,7 +109,7 @@ export default function HospitalBenchmarkTable({ data }: HospitalBenchmarkTableP
                     </td>
                   </tr>
                 )}
-              </React.Fragment>
+              </Fragment>
             );
           })}
         </tbody>
